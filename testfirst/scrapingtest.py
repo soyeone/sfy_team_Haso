@@ -15,7 +15,7 @@ from flask import Flask, request, make_response, render_template
 
 app = Flask(__name__)
 
-
+#  here is token place
 driver = webdriver.Chrome(r'C:\Users\student\Desktop\chromedriver_win32\chromedriver.exe')
 
 def default_guide(text):
