@@ -30,6 +30,19 @@ format1["actions"] = [{
                     }
                 },
                 {
+                    "name": "pricessort",
+                    "text": "Can I set the oder?              ",
+                    "type": "button",
+                    "value": "pricessort",
+                    "confirm": {
+                        "title": "keyword \"낮은가격순 or 높은가격순\"",
+                        "text": "It's showing product in the order of low/high prices                "
+                                "                  ex.) 의류 낮은가격순으로 보여줘",
+                        "ok_text": "I Got it!",
+                        # "dismiss_text": "No"
+                    }
+                },
+                {
                     "name": "review",
                     "text": "Can I find the rate of the product?                 ",
                     "type": "button",

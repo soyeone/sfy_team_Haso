@@ -15,7 +15,6 @@ from flask import Flask, request, make_response, render_template
 
 app = Flask(__name__)
 
-# slack token ..
 
 driver = webdriver.Chrome(r'C:\Users\student\Desktop\chromedriver_win32\chromedriver.exe')
 
@@ -99,7 +98,7 @@ def show_best_price(text):
     for x in products:
         links.append(x.find("a")["href"])
 
-    if text == "인기":
+    if "인기" in text:
         prices = prices[8:]
     else:
         prices = prices[4:]
@@ -134,10 +133,119 @@ def show_review(rank):
             return result
 
 
-def sorted_by_prices(text_list):
+def sorted_by_prices(text):
     '''
         가격순으로 정렬하겠음니다 zip써서 튜플로 싸서 sorted
     '''
+
+    global pre_product
+    if "브랜드" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain1.html"
+        pre_product = "브랜드"
+    elif "의류" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain2.html"
+        pre_product = "의류"
+    elif "잡화" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain3.html"
+        pre_product = "잡화"
+    elif "인기" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain.html"
+        pre_product = "인기"
+    else:
+        return "저희가 할 수 있는 영역이 아닙니다."
+
+    source = urllib.request.urlopen(url).read()
+    soup = BeautifulSoup(source, "html.parser")
+    keywords = ["11번가 " + pre_product + " 를 낮은가격순으로 보여드립니다. \n\n"]
+
+    products = soup.find_all("div", class_="pup_title")
+    prices = soup.find_all("div", class_="pub_priceW")
+
+    if "인기" in text:
+        prices = prices[8:]
+    else:
+        prices = prices[4:]
+
+    # sorted
+    pricelist = []
+    product_list = []
+    sorted_list=[]
+
+    for i in range(10):
+        pricelist.append(prices[i].get_text().replace('\n', ' '))
+        product_list.append(products[i].get_text().strip())
+
+    for i in range(10):
+        sorted_list.append(int(re.findall('\d+', pricelist[i])[0]))
+
+    print(sorted_list)
+    print(pricelist)
+    print(product_list)
+    product_price = zip(pricelist, product_list, sorted_list)
+
+    product_price = sorted(product_price, key = lambda price:price[2])
+    print(product_price)
+
+    for i in range(10):
+        keywords.append(str(i + 1) + "위: " + str(product_price[i][0]) + str(product_price[i][1])+"\n\n")
+
+    return keywords
+
+def sorted_by_prices_high(text):
+    '''
+        높은가격순으로 정렬하겠음니다 zip써서 튜플로 싸서 sorted
+    '''
+
+    global pre_product
+    if "브랜드" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain1.html"
+        pre_product = "브랜드"
+    elif "의류" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain2.html"
+        pre_product = "의류"
+    elif "잡화" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain3.html"
+        pre_product = "잡화"
+    elif "인기" in text:
+        url = "http://www.11st.co.kr/html/bestSellerMain.html"
+        pre_product = "인기"
+    else:
+        return "저희가 할 수 있는 영역이 아닙니다."
+
+    source = urllib.request.urlopen(url).read()
+    soup = BeautifulSoup(source, "html.parser")
+    keywords = ["11번가 " + pre_product + " 를 낮은가격순으로 보여드립니다. \n\n"]
+
+    products = soup.find_all("div", class_="pup_title")
+    prices = soup.find_all("div", class_="pub_priceW")
+
+    if text == "인기":
+        prices = prices[8:]
+    else:
+        prices = prices[4:]
+
+    # sorted
+    pricelist = []
+    product_list = []
+    sorted_list=[]
+
+    for i in range(10):
+        pricelist.append(prices[i].get_text().strip().replace('\n',' '))
+        product_list.append(products[i].get_text().strip())
+
+    for i in range(10):
+        sorted_list.append(int(re.findall('\d+',pricelist[i])[0]))
+
+    print(sorted_list)
+    product_price = zip(pricelist, product_list,sorted_list)
+
+    product_price = sorted(product_price, key = lambda price:price[2],reverse=True)
+    print(product_price)
+
+    for i in range(10):
+        keywords.append(str(i + 1) + "위: " + str(product_price[i][0]) + str(product_price[i][1])+"\n\n")
+
+    return keywords
 
 
 def search_product(text):
@@ -196,6 +304,12 @@ def _crawl_naver_keywords(text):
         print("품목실행")
         msg = {}
         result = show_best(text)
+    elif "낮은가격" in text:
+        msg = {}
+        result = sorted_by_prices(text)
+    elif "높은가격" in text:
+        msg = {}
+        result = sorted_by_prices_high(text)
     else:
         print("가격실행")
         msg = {}
